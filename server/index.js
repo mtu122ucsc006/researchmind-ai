@@ -13,6 +13,7 @@ app.use(cors({
     'http://localhost:5173',
     'https://researchmind-ai-pink.vercel.app'
   ],
+  credentials: true,
   allowedHeaders: ['Content-Type', 'Authorization'],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
 }))
