@@ -1,26 +1,31 @@
-import axios from 'axios'
+import axios from "axios";
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api',
+  baseURL:
+    import.meta.env.VITE_API_URL ||
+    "http://localhost:5000/api",
   headers: {
-    'Content-Type': 'application/json'
-  }
-})
+    "Content-Type": "application/json",
+  },
+});
 
 // REQUEST INTERCEPTOR
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('researchmind_token')
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("researchmind_token");
 
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`
-  }
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
 
-  // If FormData, remove content-type (let browser handle it)
-  if (config.data instanceof FormData) {
-    delete config.headers['Content-Type']
-  }
+    // Fix for file upload
+    if (config.data instanceof FormData) {
+      delete config.headers["Content-Type"];
+    }
 
-  return config
-})
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
 
-export default api
+export default api;
