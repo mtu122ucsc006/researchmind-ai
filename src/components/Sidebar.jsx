@@ -5,13 +5,12 @@ const links = [
   { label: 'Research Assistant', path: '/assistant', icon: 'https://cdn-icons-png.flaticon.com/512/4712/4712109.png' },
   { label: 'Paper Generator', path: '/generator', icon: 'https://cdn-icons-png.flaticon.com/512/3135/3135768.png' },
   { label: 'Citation Generator', path: '/citation', icon: 'https://cdn-icons-png.flaticon.com/512/2541/2541988.png' },
-  { label: 'Research Notes', path: '/notes', icon: 'https://cdn-icons-png.flaticon.com/512/3075/3075908.png' },
-  { label: 'Literature Review', path: '/literature', icon: 'https://cdn-icons-png.flaticon.com/512/2232/2232688.png' },
+  { label: 'Plagiarism Checker', path: '/plagiarism', icon: 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png' },
   { label: 'Document Upload', path: '/upload', icon: 'https://cdn-icons-png.flaticon.com/512/724/724933.png' },
   { label: 'Project Tracker', path: '/projects', icon: 'https://cdn-icons-png.flaticon.com/512/2436/2436874.png' },
   { label: 'Reference Library', path: '/references', icon: 'https://cdn-icons-png.flaticon.com/512/2232/2232688.png' },
   { label: 'Profile', path: '/profile', icon: 'https://cdn-icons-png.flaticon.com/512/1077/1077114.png' }
-]
+];
 
 export default function Sidebar({ isOpen, onClose }) {
   return (

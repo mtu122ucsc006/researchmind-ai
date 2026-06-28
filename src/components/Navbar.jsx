@@ -1,85 +1,139 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { getUser, logout } from '../utils/storage.js'
+import { logout } from '../utils/storage.js'
 
-export default function Navbar({ user, onLogout }) {
+export default function Navbar({ user, setUser }) {
   const navigate = useNavigate()
+  const [menuOpen, setMenuOpen] = useState(false)
+
   const handleLogout = () => {
     logout()
-    if (onLogout) onLogout()
-    navigate('/login')
+
+    if (setUser) {
+      setUser(null)
+    }
+
+    setMenuOpen(false)
+    navigate('/login', { replace: true })
   }
-  const currentUser = user || getUser()
+
+  const closeMenu = () => {
+    setMenuOpen(false)
+  }
 
   return (
-    <nav style={{
-      padding: '10px 20px',
-      background: '#1e1e2e',
-      display: 'flex',
-      alignItems: 'center',
-      gap: '20px',
-      flexWrap: 'wrap'
-    }}>
-      <Link to="/" style={{ color: 'white', textDecoration: 'none', fontWeight: 'bold', fontSize: '18px' }}>
+    <nav
+      style={{
+        padding: '10px 20px',
+        background: '#1e1e2e',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '20px',
+        flexWrap: 'wrap',
+        position: 'relative'
+      }}
+    >
+      {/* Logo */}
+      <Link
+        to="/"
+        onClick={closeMenu}
+        style={{
+          color: 'white',
+          textDecoration: 'none',
+          fontWeight: 'bold',
+          fontSize: '18px'
+        }}
+      >
         ResearchMind AI
       </Link>
 
-      {currentUser && (
-        <>
-          <Link to="/upload" style={{ color: '#aaa', textDecoration: 'none' }}>Upload</Link>
-          <Link to="/assistant" style={{ color: '#aaa', textDecoration: 'none' }}>AI Assistant</Link>
-          <Link to="/dashboard" style={{ color: '#aaa', textDecoration: 'none' }}>Dashboard</Link>
-        </>
-      )}
+      {/* Mobile Menu Button */}
+      <button
+        onClick={() => setMenuOpen(!menuOpen)}
+        style={{
+          marginLeft: 'auto',
+          background: 'transparent',
+          color: 'white',
+          fontSize: '22px',
+          border: 'none',
+          cursor: 'pointer'
+        }}
+      >
+        ☰
+      </button>
 
-      <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '12px' }}>
-        {currentUser ? (
+      {/* Menu */}
+      <div
+        style={{
+          display: menuOpen ? 'flex' : 'none',
+          flexDirection: 'column',
+          position: 'absolute',
+          top: '60px',
+          left: '0',
+          width: '100%',
+          background: '#1e1e2e',
+          padding: '10px',
+          zIndex: 999
+        }}
+      >
+        {user && (
           <>
-            <span style={{ color: '#aaa', fontSize: '14px' }}>
-              {currentUser.name || currentUser.email}
+            <Link to="/upload" onClick={closeMenu} style={{ color: '#aaa', padding: '8px 0' }}>
+              Upload
+            </Link>
+
+            <Link to="/assistant" onClick={closeMenu} style={{ color: '#aaa', padding: '8px 0' }}>
+              AI Assistant
+            </Link>
+
+            <Link to="/dashboard" onClick={closeMenu} style={{ color: '#aaa', padding: '8px 0' }}>
+              Dashboard
+            </Link>
+
+            <span style={{ color: '#aaa', fontSize: '14px', padding: '8px 0' }}>
+              {user.name || user.email}
             </span>
-            <Link to="/profile" style={{
-              padding: '6px 16px',
-              borderRadius: '6px',
-              background: '#2a2a3e',
-              color: 'white',
-              textDecoration: 'none',
-              border: '1px solid #555'
-            }}>
+
+            <Link
+              to="/profile"
+              onClick={closeMenu}
+              style={{
+                padding: '6px 16px',
+                borderRadius: '6px',
+                background: '#2a2a3e',
+                color: 'white',
+                textDecoration: 'none',
+                border: '1px solid #555',
+                marginBottom: '8px'
+              }}
+            >
               Profile
             </Link>
-            <button onClick={handleLogout} style={{
-              padding: '6px 16px',
-              borderRadius: '6px',
-              background: '#e53e3e',
-              color: 'white',
-              border: 'none',
-              cursor: 'pointer',
-              fontWeight: 'bold'
-            }}>
+
+            <button
+              onClick={handleLogout}
+              style={{
+                padding: '6px 16px',
+                borderRadius: '6px',
+                background: '#e53e3e',
+                color: 'white',
+                border: 'none',
+                cursor: 'pointer',
+                fontWeight: 'bold'
+              }}
+            >
               Logout
             </button>
           </>
-        ) : (
+        )}
+
+        {!user && (
           <>
-            <Link to="/login" style={{
-              padding: '6px 16px',
-              borderRadius: '6px',
-              background: '#6c63ff',
-              color: 'white',
-              textDecoration: 'none',
-              fontWeight: 'bold'
-            }}>
+            <Link to="/login" onClick={closeMenu} style={{ color: 'white', padding: '8px 0' }}>
               Login
             </Link>
-            <Link to="/signup" style={{
-              padding: '6px 16px',
-              borderRadius: '6px',
-              background: '#2a2a3e',
-              color: 'white',
-              textDecoration: 'none',
-              border: '1px solid #555'
-            }}>
+
+            <Link to="/signup" onClick={closeMenu} style={{ color: 'white', padding: '8px 0' }}>
               Signup
             </Link>
           </>

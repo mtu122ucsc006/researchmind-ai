@@ -1,123 +1,147 @@
-import { useEffect, useState } from 'react'
-import api from '../api.js'
-import { getToken } from '../utils/storage.js'
+import { useState, useEffect } from 'react'
+import api from '../api/api.js'
 
 export default function ReferenceLibrary() {
-  const [references, setReferences] = useState([])
-  const [author, setAuthor] = useState('')
-  const [title, setTitle] = useState('')
-  const [year, setYear] = useState('')
-  const [notes, setNotes] = useState('')
+  const [references, setReferences] = useState([]);
+  const [title, setTitle] = useState('');
+  const [author, setAuthor] = useState('');
+  const [year, setYear] = useState('');
+  const [link, setLink] = useState('');
 
-  useEffect(() => {
-    loadReferences()
-  }, [])
+  // Load references from backend
+useEffect(() => {
+  loadReferences()
+}, [])
 
-  const loadReferences = async () => {
-    try {
-      const token = getToken()
-      const response = await api.get('/references', { headers: { Authorization: `Bearer ${token}` } })
-      setReferences(response.data)
-    } catch (error) {
-      console.error(error)
-      alert('Unable to load references.')
-    }
+const loadReferences = async () => {
+  try {
+    const res = await api.get('/references')
+    setReferences(res.data)
+  } catch (err) {
+    console.error(err)
+    alert('Unable to load references.')
   }
+}
 
-  const saveReference = async () => {
-    if (!author.trim() || !title.trim() || !year.trim()) {
-      alert('Enter author, title, and year.')
-      return
-    }
+  const addReference = async () => {
+  if (!title.trim()) return;
 
-    try {
-      const token = getToken()
-      await api.post(
-        '/references',
-        { author: author.trim(), title: title.trim(), year: year.trim(), notes: notes.trim() },
-        { headers: { Authorization: `Bearer ${token}` } }
-      )
-      setAuthor('')
-      setTitle('')
-      setYear('')
-      setNotes('')
-      loadReferences()
-    } catch (error) {
-      console.error(error)
-      alert('Unable to save reference.')
-    }
+  try {
+    const newRef = {
+      title: title.trim(),
+      author: author.trim(),
+      year: year.trim(),
+      link: link.trim()
+    };
+
+    await api.post('/references', newRef);
+
+    await loadReferences();
+
+    setTitle('');
+    setAuthor('');
+    setYear('');
+    setLink('');
+
+  } catch (err) {
+    console.error(err);
+    alert('Unable to save reference');
   }
+};
 
   const deleteReference = async (id) => {
-    try {
-      const token = getToken()
-      await api.delete(`/references/${id}`, { headers: { Authorization: `Bearer ${token}` } })
-      loadReferences()
-    } catch (error) {
-      console.error(error)
-      alert('Unable to delete reference.')
-    }
+  try {
+    await api.delete(`/references/${id}`);
+    await loadReferences();
+  } catch (err) {
+    console.error(err);
+    alert('Unable to delete reference');
   }
+};
 
   return (
-    <div className="space-y-6">
-      <div className="rounded-3xl bg-white p-6 shadow-xl">
-        <h1 className="text-2xl font-semibold text-brand-700">Reference Library</h1>
-        <p className="mt-2 text-slate-600">Save your academic references and quick notes in one place.</p>
-        <div className="mt-6 grid gap-4 md:grid-cols-4">
-          <input
-            value={author}
-            onChange={(e) => setAuthor(e.target.value)}
-            className="rounded-3xl border border-slate-300 px-4 py-3 focus:border-brand-500 focus:outline-none"
-            placeholder="Author"
-          />
-          <input
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            className="rounded-3xl border border-slate-300 px-4 py-3 focus:border-brand-500 focus:outline-none"
-            placeholder="Title"
-          />
-          <input
-            value={year}
-            onChange={(e) => setYear(e.target.value)}
-            className="rounded-3xl border border-slate-300 px-4 py-3 focus:border-brand-500 focus:outline-none"
-            placeholder="Year"
-          />
-          <button onClick={saveReference} className="rounded-3xl bg-brand-600 px-6 py-3 text-white hover:bg-brand-700">
-            Save Reference
-          </button>
-        </div>
-        <textarea
-          value={notes}
-          onChange={(e) => setNotes(e.target.value)}
-          className="mt-4 w-full rounded-3xl border border-slate-300 px-4 py-3 focus:border-brand-500 focus:outline-none"
-          rows="3"
-          placeholder="Add a note for this reference (optional)"
+    <div className="p-6 max-w-4xl mx-auto">
+      <h1 className="text-2xl font-bold mb-4">Reference Library</h1>
+
+      <div className="bg-white p-4 rounded shadow mb-6">
+        <input
+          className="w-full border p-2 mb-2 rounded"
+          placeholder="Reference Title (Paper / Book / Article)"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
         />
+
+        <input
+          className="w-full border p-2 mb-2 rounded"
+          placeholder="Author Name"
+          value={author}
+          onChange={(e) => setAuthor(e.target.value)}
+        />
+
+        <input
+          className="w-full border p-2 mb-2 rounded"
+          placeholder="Year of Publication"
+          value={year}
+          onChange={(e) => setYear(e.target.value)}
+        />
+
+        <input
+          className="w-full border p-2 mb-2 rounded"
+          placeholder="Reference Link (DOI / URL)"
+          value={link}
+          onChange={(e) => setLink(e.target.value)}
+        />
+
+        <button
+          onClick={addReference}
+          disabled={!title.trim()}
+          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
+        >
+          Add Reference
+        </button>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        {references.length === 0 && (
-          <div className="rounded-3xl bg-slate-100 p-6 text-slate-600">No saved references yet. Add one to build your library.</div>
-        )}
-        {references.map((reference) => (
-          <div key={reference.id} className="rounded-3xl bg-white p-6 shadow-xl">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <h2 className="text-xl font-semibold text-slate-900">{reference.title}</h2>
-                <p className="mt-2 text-sm text-slate-500">{reference.author} · {reference.year}</p>
-                {reference.notes && <p className="mt-4 text-slate-600">{reference.notes}</p>}
+      <div className="space-y-4">
+        {references.length === 0 ? (
+          <p className="text-gray-500 text-sm">
+            No references added yet. Add your first academic source.
+          </p>
+        ) : (
+          references.map((ref) => (
+            <div key={ref.id} className="bg-gray-50 p-4 rounded shadow">
+
+              <h2 className="font-semibold text-lg text-slate-800">
+                {ref.title}
+              </h2>
+
+              <p className="text-sm text-gray-600 mt-1">
+                👤 {ref.author || 'Unknown Author'} | 📅 {ref.year || 'N/A'}
+              </p>
+
+              {ref.link && (
+                <a
+                  href={ref.link}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-blue-600 text-sm underline mt-1 inline-block"
+                >
+                  View Source
+                </a>
+              )}
+
+              <div className="mt-3">
+                <button
+                  onClick={() => deleteReference(ref.id)}
+                  className="px-3 py-1 text-sm bg-red-500 text-white rounded hover:bg-red-600"
+                >
+                  Delete
+                </button>
               </div>
-              <button
-                onClick={() => deleteReference(reference.id)}
-                className="rounded-full bg-slate-100 px-3 py-2 text-red-600 hover:bg-slate-200"
-              >
-                Delete
-              </button>
+
             </div>
-          </div>
-        ))}
+          ))
+        )}
       </div>
     </div>
-  )
+  );
 }

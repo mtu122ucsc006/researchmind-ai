@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import api from '../api.js'
+import api from "../api/api.js"
 import { getToken } from '../utils/storage.js'
 
 export default function DocumentUpload() {

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import api from '../api.js'
+import api from "../api/api.js"
 import { saveUser, saveToken } from '../utils/storage.js'
 
 export default function Signup({ onSignup }) {

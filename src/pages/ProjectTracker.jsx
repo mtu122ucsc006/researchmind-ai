@@ -1,132 +1,174 @@
-import { useEffect, useState } from 'react'
-import api from '../api.js'
-import { getToken } from '../utils/storage.js'
+import { useState, useEffect } from 'react';
+import api from '../api/api.js';
 
 export default function ProjectTracker() {
-  const [projects, setProjects] = useState([])
-  const [title, setTitle] = useState('')
-  const [deadline, setDeadline] = useState('')
+  const [projects, setProjects] = useState([]);
+  const [title, setTitle] = useState('');
+  const [desc, setDesc] = useState('');
+  const [deadline, setDeadline] = useState('');
 
+  // Load projects from backend
   useEffect(() => {
-    loadProjects()
-  }, [])
+    loadProjects();
+  }, []);
 
   const loadProjects = async () => {
     try {
-      const token = getToken()
-      const response = await api.get('/projects', { headers: { Authorization: `Bearer ${token}` } })
-      setProjects(response.data)
-    } catch (error) {
-      console.error(error)
-      alert('Unable to load projects.')
+      const res = await api.get('/projects');
+      setProjects(res.data);
+    } catch (err) {
+      console.error(err);
+      alert('Unable to load projects');
     }
-  }
+  };
 
-  const saveProject = async () => {
-    if (!title.trim()) {
-      alert('Enter a project title.')
-      return
-    }
+  // Add Project
+  const addProject = async () => {
+    if (!title.trim()) return;
 
     try {
-      const token = getToken()
-      await api.post(
-        '/projects',
-        { title: title.trim(), deadline: deadline || 'No deadline' },
-        { headers: { Authorization: `Bearer ${token}` } }
-      )
-      setTitle('')
-      setDeadline('')
-      loadProjects()
-    } catch (error) {
-      console.error(error)
-      alert('Unable to save project.')
-    }
-  }
+      const newProject = {
+        title: title.trim(),
+        desc: desc.trim(),
+        deadline,
+        status: "Pending"
+      };
 
-  const toggleCompleted = async (project) => {
+      await api.post('/projects', newProject);
+
+      await loadProjects();
+
+      setTitle('');
+      setDesc('');
+      setDeadline('');
+
+    } catch (err) {
+      console.error(err);
+      alert('Unable to add project');
+    }
+  };
+
+  // Update Status
+  const updateStatus = async (id, status) => {
     try {
-      const token = getToken()
-      await api.put(
-        `/projects/${project.id}`,
-        { completed: !project.completed },
-        { headers: { Authorization: `Bearer ${token}` } }
-      )
-      loadProjects()
-    } catch (error) {
-      console.error(error)
-      alert('Unable to update project.')
+      await api.put(`/projects/${id}`, { status });
+      await loadProjects();
+    } catch (err) {
+      console.error(err);
+      alert('Unable to update status');
     }
-  }
+  };
 
+  // Delete Project
   const deleteProject = async (id) => {
     try {
-      const token = getToken()
-      await api.delete(`/projects/${id}`, { headers: { Authorization: `Bearer ${token}` } })
-      loadProjects()
-    } catch (error) {
-      console.error(error)
-      alert('Unable to delete project.')
+      await api.delete(`/projects/${id}`);
+      await loadProjects();
+    } catch (err) {
+      console.error(err);
+      alert('Unable to delete project');
     }
-  }
+  };
 
   return (
-    <div className="space-y-6">
-      <div className="rounded-3xl bg-white p-6 shadow-xl">
-        <h1 className="text-2xl font-semibold text-brand-700">Project Tracker</h1>
-        <p className="mt-2 text-slate-600">Create, monitor, and complete your research milestones.</p>
-        <div className="mt-6 grid gap-4 md:grid-cols-3">
-          <input
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            className="rounded-3xl border border-slate-300 px-4 py-3 focus:border-brand-500 focus:outline-none"
-            placeholder="Project title"
-          />
-          <input
-            value={deadline}
-            onChange={(e) => setDeadline(e.target.value)}
-            className="rounded-3xl border border-slate-300 px-4 py-3 focus:border-brand-500 focus:outline-none"
-            type="date"
-            placeholder="Deadline"
-          />
-          <button onClick={saveProject} className="rounded-3xl bg-brand-600 px-6 py-3 text-white hover:bg-brand-700">
-            Add Project
-          </button>
-        </div>
+    <div className="p-6 max-w-4xl mx-auto">
+      <h1 className="text-2xl font-bold mb-4">Project Tracker</h1>
+
+      {/* Input Form */}
+      <div className="bg-white p-4 rounded shadow mb-6">
+        <input
+          className="w-full border p-2 mb-2 rounded"
+          placeholder="Project Title"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+        />
+
+        <textarea
+          className="w-full border p-2 mb-2 rounded"
+          placeholder="Project Description"
+          value={desc}
+          onChange={(e) => setDesc(e.target.value)}
+        />
+
+        <input
+          type="date"
+          className="w-full border p-2 mb-2 rounded"
+          value={deadline}
+          onChange={(e) => setDeadline(e.target.value)}
+        />
+
+        <button
+          onClick={addProject}
+          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+        >
+          Add Project
+        </button>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        {projects.length === 0 && (
-          <div className="rounded-3xl bg-slate-100 p-6 text-slate-600">No projects yet. Add one to start tracking progress.</div>
-        )}
-        {projects.map((project) => (
-          <div key={project.id} className="rounded-3xl bg-white p-6 shadow-xl">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <h2 className="text-xl font-semibold text-slate-900">{project.title}</h2>
-                <p className="mt-2 text-sm text-slate-500">Deadline: {project.deadline || 'No deadline'}</p>
-                <p className={`mt-4 inline-flex rounded-full px-3 py-1 text-sm font-medium ${project.completed ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-700'}`}>
-                  {project.completed ? 'Completed' : 'In progress'}
-                </p>
-              </div>
-              <div className="flex flex-col gap-2">
+      {/* Project List */}
+      <div className="space-y-4">
+        {projects.length === 0 ? (
+          <p className="text-gray-500 text-sm">
+            No projects added yet.
+          </p>
+        ) : (
+          projects.map((project) => (
+            <div
+              key={project.id}
+              className="bg-gray-50 p-4 rounded shadow"
+            >
+              <h2 className="text-lg font-semibold">
+                {project.title}
+              </h2>
+
+              <p className="text-sm text-gray-600">
+                {project.desc}
+              </p>
+
+              <p className="text-sm mt-1">
+                📅 Deadline: {project.deadline || "Not set"}
+              </p>
+
+              <p className="mt-2">
+                Status:
+                <span className="font-bold ml-2">
+                  {project.status}
+                </span>
+              </p>
+
+              <div className="mt-3 flex gap-2 flex-wrap">
                 <button
-                  onClick={() => toggleCompleted(project)}
-                  className="rounded-full bg-brand-100 px-3 py-2 text-brand-700 hover:bg-brand-200"
+                  onClick={() => updateStatus(project.id, "Pending")}
+                  className="px-2 py-1 text-sm bg-yellow-400 rounded"
                 >
-                  {project.completed ? 'Mark Incomplete' : 'Mark Complete'}
+                  Pending
                 </button>
+
+                <button
+                  onClick={() => updateStatus(project.id, "In Progress")}
+                  className="px-2 py-1 text-sm bg-blue-400 text-white rounded"
+                >
+                  In Progress
+                </button>
+
+                <button
+                  onClick={() => updateStatus(project.id, "Completed")}
+                  className="px-2 py-1 text-sm bg-green-500 text-white rounded"
+                >
+                  Completed
+                </button>
+
                 <button
                   onClick={() => deleteProject(project.id)}
-                  className="rounded-full bg-slate-100 px-3 py-2 text-red-600 hover:bg-slate-200"
+                  className="px-2 py-1 text-sm bg-red-500 text-white rounded"
                 >
                   Delete
                 </button>
               </div>
             </div>
-          </div>
-        ))}
+          ))
+        )}
       </div>
     </div>
-  )
+  );
 }
